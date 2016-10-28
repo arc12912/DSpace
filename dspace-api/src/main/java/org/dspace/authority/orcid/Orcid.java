@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.w3c.dom.Document;
 
+import javax.print.Doc;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,8 +63,21 @@ public class Orcid extends RestSource {
         return converter.convert(document);
     }
 
-    public List<Bio> queryBio(String name, int start, int rows) {
-        Document bioDocument = restConnector.get("search/orcid-bio?q=" + URLEncoder.encode("\"" + name + "\"") + "&start=" + start + "&rows=" + rows);
+    public List<Bio> queryBio(String name, int start, int rows)
+    {
+        Document bioDocument = null;
+        String search = "";
+        if(name.contains(","))
+        {
+            int comma = name.indexOf(',');
+            String lastName = name.substring(0,comma);
+            String firstName = name.substring(comma+2);
+            bioDocument = restConnector.get("search/orcid-bio?q="+URLEncoder.encode("given-names:"+"\""+firstName+"\""+" AND family-name:"+"\""+lastName+"\"")+"&start=" + start + "&rows=" + rows);
+        }
+        else
+        {
+            bioDocument = restConnector.get("search/orcid-bio?q=" + URLEncoder.encode("\"" + name + "\"") + "&start=" + start + "&rows=" + rows);
+        }
         XMLtoBio converter = new XMLtoBio();
         return converter.convert(bioDocument);
     }
